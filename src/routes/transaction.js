@@ -7,12 +7,13 @@ import CheckStatus from "../controllers/transaction/checkstatus.post.js";
 import Refund from "../controllers/transaction/refund.put.js";
 import Reschedule from "../controllers/transaction/reschedule.put.js";
 import Erase from "../controllers/transaction/erase.delete.js";
+import detailTransaction from "../controllers/transaction/detail.get.js"
 
 const transactionRoute = express.Router();
 
 transactionRoute.post("/transaction/checkout", authentication, customer, Checkout)
 transactionRoute.get("/transaction", authentication, List);
-transactionRoute.get("/transaction/:_id", authentication, Detail);
+transactionRoute.get("/transaction/:_id", authentication, detailTransaction);
 transactionRoute.post("/transaction/check-status/:order_id", authentication, CheckStatus);
 transactionRoute.put("/transaction/refund/:_id", authentication, admin, Refund);
 transactionRoute.put("/transaction/:_id", authentication, customer, Reschedule);

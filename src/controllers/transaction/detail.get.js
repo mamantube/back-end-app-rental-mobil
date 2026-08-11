@@ -17,8 +17,24 @@ import { Types } from "mongoose";
 
 export default async function (req, res) {
     try {
-        const _id = req.params._id;
+        const user_id = req.params._id;
+
+        if (!Types.ObjectId.isValid(user_id)) {
+            return message(res, 422, "User id Tidak valid")
+        }
         
+        const detailTransaction = await transactionModel.find({
+            
+            user_id: new Types.ObjectId(user_id),
+            deleted_at: null,
+        })
+        .populate("product_ids")
+        .sort({ created_at: -1 });
+
+        return message(res, 200, "Data Transaksi", detailTransaction)
+
+
+
         const detail = await transactionModel.aggregate([
             {
                 $match: {
