@@ -38,6 +38,12 @@ export default async function (req, res) {
         const body = req.body;
 
         const checkValidation = validation(schemaValidation, body);
+        const startDate = new Date(checkValidation.data.rental_duration.start_date);
+        const endDate = new Date(checkValidation.data.rental_duration.end_date);
+
+        const diffTime = endDate.getTime() - startDate();
+
+        const rentalDays = Math.floor(diffTime / (1000 * 60 * 24)) + 1;
 
         if (!checkValidation.success)
             return message(res, 422, "Validasi error", {
@@ -81,16 +87,16 @@ export default async function (req, res) {
 
         let item_details = findProductId.map((product) => {
             return {
-                id: product._doc._id,
-                name: product._doc.name,
-                price: product._doc.price,
-                quantity: 1,
+                id: product._id,
+                name: product.name,
+                price: product.price,
+                quantity: rentalDays,
                 merchant_name: "MAREMO",
                 category: "Mobil"
             }
         })
 
-        const gross_amount = item_details.reduce((a, b) => a + b.price, 0);
+        const gross_amount = item_details.reduce((total, item) => total + (item.price * item.quantity));
 
         const parameter = {
             transaction_details: {
@@ -98,10 +104,10 @@ export default async function (req, res) {
                 gross_amount,
             },
             customer_details: {
-                first_name: findUserId._doc.first_name,
-                last_name: findUserId._doc.last_name,
-                email: findUserId._doc.email,
-                phone: findUserId._doc.phone,
+                first_name: findUserId.first_name,
+                last_name: findUserId.last_name,
+                email: findUserId.email,
+                phone: findUserId.phone,
             },
             item_details
         };
@@ -118,6 +124,7 @@ export default async function (req, res) {
             const payload = {
                 ...parameter.transaction_details,
                 ...checkValidation.data,
+                rental_days: rentalDays,
                 token: response.token,
                 redirect_url: response.redirect_url,
             };

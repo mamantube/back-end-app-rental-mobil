@@ -50,6 +50,10 @@ const transactionSchema = new Schema(
                 required: true,
             }
         ],
+        rental_days: {
+            type: Number,
+            required: true,
+        },
         note_refund: {
             type: String,
             default: null,
