@@ -28,7 +28,13 @@ export default async function (req, res) {
             user_id: new Types.ObjectId(user_id),
             deleted_at: null,
         })
-        .populate("product_ids")
+        .populate({
+            path: "product_ids",
+            populate: {
+                path: "storage_id",
+                moodel: "Storages",
+            }
+        })
         .sort({ created_at: -1 });
 
         return message(res, 200, "Data Transaksi", detailTransaction)
