@@ -38,18 +38,18 @@ export default async function (req, res) {
         const body = req.body;
 
         const checkValidation = validation(schemaValidation, body);
-        const startDate = new Date(checkValidation.data.rental_duration.start_date);
-        const endDate = new Date(checkValidation.data.rental_duration.end_date);
-
-        const diffTime = endDate.getTime() - startDate();
-
-        const rentalDays = Math.floor(diffTime / (1000 * 60 * 24)) + 1;
-
+        
         if (!checkValidation.success)
             return message(res, 422, "Validasi error", {
                 errors: checkValidation.errors,
             });
         
+        const startDate = new Date(checkValidation.data.rental_duration.start_date);
+        const endDate = new Date(checkValidation.data.rental_duration.end_date);
+        const diffTime = endDate.getTime() - startDate.getTime();
+        const rentalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+
             
             const findUserId = await userModel.findOne({ _id: checkValidation.data.user_id, deleted_at: null });
             
@@ -96,7 +96,7 @@ export default async function (req, res) {
             }
         })
 
-        const gross_amount = item_details.reduce((total, item) => total + (item.price * item.quantity));
+        const gross_amount = item_details.reduce((total, item) => total + (item.price * item.quantity), 0);
 
         const parameter = {
             transaction_details: {
