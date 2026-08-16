@@ -10,9 +10,9 @@ export default async function ( req, res) {
         console.log("=== MIDTRANS NOTIFICATION ===")
         console.log(notification);
 
-        const { oreder_id, transaction_status, fraud_status, payment_method } = notification;
+        const { order_id, transaction_status, fraud_status, payment_type } = notification;
 
-        if (!oreder_id) {
+        if (!order_id) {
             return message(res, 400, "Order ID tidak ditemukan");
         };
 
@@ -22,25 +22,25 @@ export default async function ( req, res) {
             clientKey: MIDTRANS_CLIENT_KEY,
         });
 
-        const transactionStatus = await core.transaction.status(oreder_id);
+        const transactionStatus = await core.transaction.status(order_id);
 
         console.log("=== TRANSACTION STATUS ===");
         console.log(transactionStatus);
 
         const updateData = {
             status: transactionStatus.transaction_status,
-            transaction_id: transactionStatus.transactionStatus || null,
-            payment_method: transactionStatus.payment_method || payment_method || null,
+            transaction_id: transactionStatus.transaction_id || null,
+            payment_type: transactionStatus.payment_type || payment_type || null,
         };
 
-        if (transactionStatus.payment_method === "bank_trnasfer" && transactionStatus.va_numbers?.length) {
+        if (transactionStatus.payment_type === "bank_transfer" && transactionStatus.va_numbers?.length) {
             const va = transactionStatus.va_numbers[0];
 
             updateData.payment_detail = {
                 bank: va.bank,
                 va_number: va.va_number
             }
-        } else if (transactionStatus.payment_method === "qris") {
+        } else if (transactionStatus.payment_type === "qris") {
             updateData.payment_detail = {
                 qr_string: transactionStatus.qr_string || null
             }
@@ -52,7 +52,7 @@ export default async function ( req, res) {
 
         const transaction = await transactionModel.findOneAndUpdate(
             {
-                oreder_id,
+                order_id,
             },
             updateData,
             {

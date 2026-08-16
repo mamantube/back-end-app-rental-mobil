@@ -54,7 +54,7 @@ const transactionSchema = new Schema(
             type: Number,
             required: true,
         },
-        payment_method: {
+        payment_type: {
             type: String,
             default: null,
         },
