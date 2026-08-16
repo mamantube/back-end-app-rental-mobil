@@ -46,7 +46,7 @@ export default async function ( req, res) {
             }
         } else {
             updateData.payment_detail = {
-                transaction_id: transaction_status.transaction_id || null
+                transaction_id: transactionStatus.transaction_id || null
             }
         }
 
