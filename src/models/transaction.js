@@ -54,6 +54,14 @@ const transactionSchema = new Schema(
             type: Number,
             required: true,
         },
+        payment_method: {
+            type: String,
+            default: null,
+        },
+        payment_detail: {
+            type: Object,
+            default: null,
+        },
         note_refund: {
             type: String,
             default: null,

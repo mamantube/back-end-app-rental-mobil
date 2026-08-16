@@ -8,6 +8,7 @@ import Refund from "../controllers/transaction/refund.put.js";
 import Reschedule from "../controllers/transaction/reschedule.put.js";
 import Erase from "../controllers/transaction/erase.delete.js";
 import detailTransaction from "../controllers/transaction/detail.get.js"
+import notificationPost from "../controllers/transaction/notification.post.js";
 
 const transactionRoute = express.Router();
 
@@ -18,5 +19,6 @@ transactionRoute.post("/transaction/check-status/:order_id", authentication, Che
 transactionRoute.put("/transaction/refund/:_id", authentication, admin, Refund);
 transactionRoute.put("/transaction/:_id", authentication, customer, Reschedule);
 transactionRoute.delete("/transaction/erase/:token", authentication, customer, Erase)
+transactionRoute.post("/transaction/notification", notificationPost);
 
 export default transactionRoute;
