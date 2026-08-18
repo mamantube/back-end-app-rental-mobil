@@ -48,7 +48,7 @@ export default async function (req, res) {
 
         updateData.payment_detail = {
             bank: va.bank,
-            va_number: va.va_numbers,
+            va_number: va.va_number,
         }
     } else if ( payment_type === "qris" ) {
         updateData.payment_detail = {
