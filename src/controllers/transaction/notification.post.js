@@ -59,8 +59,13 @@ export default async function (req, res) {
             va_number: va.va_number,
         }
     } else if ( payment_type === "qris" ) {
+        const qrAction = transactionStatus.actions?.find((action) => action.name === "generate-qr-code-v2" || action.name === "generate-qr-code")
+
+        console.log("== QR ACTION ==");
+        console.log(qrAction);
+
         updateData.payment_detail = {
-            qr_string: transactionStatus.qr_string || notification.qr_string ||null,
+            qr_url: qrAction?.url ||null,
         };
     } else {
         updateData.payment_detail = {
