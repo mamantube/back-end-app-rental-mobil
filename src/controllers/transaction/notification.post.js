@@ -48,7 +48,7 @@ export default async function (req, res) {
       payment_type: paymentType,
     };
 
-    if ( payment_type === "bank_transfer" && va_numbers && va_numbers.length > 0 ) {
+    if ( paymentType === "bank_transfer" && va_numbers && va_numbers.length > 0 ) {
         const va = transactionStatus.va_numbers[0];
 
         console.log("== VA DATA ==");
@@ -58,7 +58,7 @@ export default async function (req, res) {
             bank: va.bank,
             va_number: va.va_number,
         }
-    } else if ( payment_type === "qris" ) {
+    } else if ( paymentType === "qris" ) {
         const qrAction = transactionStatus.actions?.find((action) => action.name === "generate-qr-code-v2" || action.name === "generate-qr-code")
 
         console.log("== QR ACTION ==");
@@ -97,53 +97,6 @@ export default async function (req, res) {
 
     return message(res, 200, "Notifikasi berhasil diproses", transaction)
     
-
-    // const transactionStatus = await core.transaction.status(order_id);
-
-    // console.log("=== TRANSACTION STATUS ===");
-    // console.log(transactionStatus);
-
-
-    // if (
-    //   transactionStatus.payment_type === "bank_transfer" &&
-    //   transactionStatus.va_numbers?.length
-    // ) {
-    //   const va = transactionStatus.va_numbers[0];
-
-    //   updateData.payment_detail = {
-    //     bank: va.bank,
-    //     va_number: va.va_number,
-    //   };
-    // } else if (transactionStatus.payment_type === "qris") {
-    //   updateData.payment_detail = {
-    //     qr_string: transactionStatus.qr_string || null,
-    //   };
-    // } else {
-    //   updateData.payment_detail = {
-    //     transaction_id: transactionStatus.transaction_id || null,
-    //   };
-    // }
-
-    // const transaction = await transactionModel.findOneAndUpdate(
-    //   {
-    //     order_id,
-    //   },
-    //   updateData,
-    //   {
-    //     new: true,
-    //   },
-    // );
-
-    // if (!transaction) {
-    //   return message(res, 404, "Data transaksi tidak ditemukan");
-    // }
-
-    // return message(
-    //   res,
-    //   200,
-    //   "Data Transaksi berhasil diperbaharui",
-    //   transaction,
-    // );
   } catch (error) {
     console.error("MIDTRANS NOTIFICATION ERROR", error);
 
