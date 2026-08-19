@@ -14,7 +14,7 @@ export default async function (req, res) {
     console.log("=== MIDTRANS NOTIFICATION ===");
     console.log(notification);
 
-    const { order_id, transaction_status, fraud_status, payment_type, transaction_id, gross_amount, status_code, signature_key, va_numbers } = notification;
+    const { order_id, transaction_status, payment_type, transaction_id, gross_amount, status_code, signature_key, va_numbers } = notification;
 
     if (!order_id) {
         console.error("Order ID tidak ditemukan")
@@ -23,13 +23,11 @@ export default async function (req, res) {
 
     const signature = crypto.createHash("sha512").update( order_id + status_code + gross_amount + MIDTRANS_SERVER_KEY).digest("hex");
 
-    if (signature === !signature_key) {
+    if (signature !== signature_key) {
         console.error("Signature midtrans tidak valid");
 
         return message(res, 403, "Invalid signature");
     }
-
-
 
     const core = new midtransClient.CoreApi({
       isProduction: false,
@@ -37,14 +35,24 @@ export default async function (req, res) {
       clientKey: MIDTRANS_CLIENT_KEY,
     });
 
+    const transactionStatus = await core.transaction.status(order_id);
+
+    console.log("== TRANSACTION STATUS ==");
+    console.log(transactionStatus);
+
+    const paymentType = transactionStatus.payment_type || payment_type || null;
+
     const updateData = {
-      status: transaction_status,
-      transaction_id: transaction_id || null,
-      payment_type: payment_type || payment_type || null,
+      status: transactionStatus.transaction_status || transaction_status,
+      transaction_id: transactionStatus.transaction_id || transaction_id || null,
+      payment_type: paymentType,
     };
 
     if ( payment_type === "bank_transfer" && va_numbers && va_numbers.length > 0 ) {
-        const va = va_numbers[0];
+        const va = transactionStatus.va_numbers[0];
+
+        console.log("== VA DATA ==");
+        console.log(va);
 
         updateData.payment_detail = {
             bank: va.bank,
@@ -52,11 +60,11 @@ export default async function (req, res) {
         }
     } else if ( payment_type === "qris" ) {
         updateData.payment_detail = {
-            qr_string: notification.qr_string || null,
+            qr_string: transactionStatus.qr_string || notification.qr_string ||null,
         };
     } else {
         updateData.payment_detail = {
-            transaction_id: transaction_id || null,
+            transaction_id: transactionStatus.transaction_id || transaction_id || null,
         };
     }
 
