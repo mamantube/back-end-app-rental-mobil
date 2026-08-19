@@ -76,6 +76,12 @@ export default async function (req, res) {
         va_number: va.va_number,
       };
     } else if (paymentType === "qris") {
+      console.log("========== QRIS DEBUG ==========");
+      console.log("payment_type:", transactionStatus.payment_type);
+      console.log("qr_string:", transactionStatus.qr_string);
+      console.log("actions:", transactionStatus.actions);
+      console.log("================================");
+      
       const qrAction = transactionStatus.actions?.find(
         (action) =>
           action.name === "generate-qr-code-v2" ||
@@ -83,7 +89,7 @@ export default async function (req, res) {
       );
 
       updateData.payment_detail = {
-        qr_url: qrAction?.url || null,
+        qr_url: qrAction?.qr_url || null,
         qr_string: transactionStatus.qr_string || null,
       };
 
