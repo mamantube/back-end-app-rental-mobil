@@ -48,6 +48,10 @@ export default async function (req, res) {
     });
 
     const transactionStatus = await core.transaction.status(order_id);
+    console.log("=================================");
+    console.log("=== CORE TRANSACTION STATUS ===");
+    console.dir(transactionStatus, { depth: null });
+    console.log("=================================");
 
     console.log("== TRANSACTION STATUS ==");
     console.log(transactionStatus);
