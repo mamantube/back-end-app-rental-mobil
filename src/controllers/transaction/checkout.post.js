@@ -119,26 +119,43 @@ export default async function (req, res) {
             clientKey: MIDTRANS_CLIENT_KEY,
         });
 
+        const response = await snap.createTransaction(parameter);
 
-        snap.createTransaction(parameter).then( async (response) => {
-            const payload = {
-                ...parameter.transaction_details,
-                ...checkValidation.data,
-                rental_days: rentalDays,
-                token: response.token,
-                redirect_url: response.redirect_url,
-            };
+        console.log("===========")
+        console.log("=== SNAP CREATE TRANSACTION ===")
+        console.dir(response, { depth: null })
+        console.log("============");
 
-            await transactionModel.create(payload);
+        const payload = {
+            ...parameter.transaction_details,
+            ...checkValidation.data,
+            rental_days: rentalDays,
+            token: response.token,
+            redirect_url: response.redirect_url,
+        };
 
-            message(res, 201, "Berhasil dimasukkan ke dalam keranjang", response);
-        }).catch((error) => {
-            const { error_messages: errors} = error.ApiResponse;
+        await transactionModel.create(payload);
 
-            message(res, 500, "Midtrans", {
-                errors,
-            })
-        });
+        return message(res, 201, "Berhasil checkout", response);
+        // snap.createTransaction(parameter).then( async (response) => {
+        //     const payload = {
+        //         ...parameter.transaction_details,
+        //         ...checkValidation.data,
+        //         rental_days: rentalDays,
+        //         token: response.token,
+        //         redirect_url: response.redirect_url,
+        //     };
+
+        //     await transactionModel.create(payload);
+
+        //     message(res, 201, "Berhasil dimasukkan ke dalam keranjang", response);
+        // }).catch((error) => {
+        //     const { error_messages: errors} = error.ApiResponse;
+
+        //     message(res, 500, "Midtrans", {
+        //         errors,
+        //     })
+        // });
     } catch (error) {
         message(res, 500, error?.message || "Server internal error")
     }
