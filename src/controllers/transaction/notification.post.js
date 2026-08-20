@@ -68,37 +68,19 @@ export default async function (req, res) {
     if (
       paymentType === "bank_transfer" &&
       va_numbers &&
-      va_numbers.length > 0
+      va_numbers?.length > 0
     ) {
       const va = transactionStatus.va_numbers[0];
-
-      console.log("== VA DATA ==");
-      console.log(va);
 
       updateData.payment_detail = {
         bank: va.bank,
         va_number: va.va_number,
       };
     } else if (paymentType === "qris") {
-      console.log("========== QRIS DEBUG ==========");
-    console.log("payment_type:", transactionStatus.payment_type);
-    console.log("qr_string:", transactionStatus.qr_string);
-    console.log("actions:", transactionStatus.actions);
-    console.log("================================");
-
-    const qrAction = transactionStatus.actions?.find(
-        (action) =>
-            action.name === "generate-qr-code-v2" ||
-            action.name === "generate-qr-code"
-    );
-
-    updateData.payment_detail = {
-        qr_url: qrAction?.url || null,
-        qr_string: transactionStatus.qr_string || null,
-    };
-
-      console.log("== QR PAYMENT DETAIL ==");
-      console.log(updateData.payment_detail);
+      updateData.payment_detail = {
+        transaction_id:
+          transactionStatus.transaction_id || transaction_id || null,
+      };
     } else {
       updateData.payment_detail = {
         transaction_id:
@@ -106,8 +88,8 @@ export default async function (req, res) {
       };
     }
 
-    console.log("== UPDATE DATA ==");
-    console.log(updateData);
+    // console.log("== UPDATE DATA ==");
+    // console.log(updateData);
 
     const transaction = await transactionModel.findOneAndUpdate(
       {
@@ -129,8 +111,8 @@ export default async function (req, res) {
       );
     }
 
-    console.log("== TRANSACTION UDPATE ==");
-    console.log(transaction);
+    // console.log("== TRANSACTION UDPATE ==");
+    // console.log(transaction);
 
     return message(res, 200, "Notifikasi berhasil diproses", transaction);
   } catch (error) {
