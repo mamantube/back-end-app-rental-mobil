@@ -24,8 +24,7 @@ const schemaValidation = z.object({
 
 export default async function (req, res) {
     try {
-        const start_date = req.query.start_date;
-        const end_date= req.query.end_date;
+        const { start_date, end_date, status, q } = req.query;
 
         const checkValidation = validation(schemaValidation, req.query);
 
@@ -39,36 +38,53 @@ export default async function (req, res) {
         const per_page = req.query.page ? Number(req.query.per_page) : 10;
         const skip = page > 1 ? (page - 1) * per_page : 0;
 
+        const macthQuery = {
+            $or: [
+                {
+                    order_id: {
+                        $regex: q,
+                        $options: "i"
+                    },
+
+                },
+                {
+                    transaction_id: {
+                        $regex: q,
+                        $options: "i"
+                    },
+                },
+            ],
+
+            rental_duration: {
+                $elemMatch: {
+                    start_date: {
+                        $lte: new Date(end_date)
+                    },
+                    end_date: {
+                        $gte: new Date(start_date)
+                    },
+                },
+            },
+
+            deleted_at: null,
+        };
+
+        if (status) {
+            macthQuery.status = status;
+        }
+
         const filters = [
             {
-                $match: {
-                    $and: [
-                        {
-                            $or: [
-                                { order_id: { $regex: q, $options: "i"} },
-                                { transaction_id: { $regex: q, $options: "i"} },
-                                // { "product_detail.name": { $regex: q, $options: "i"} },
-                            ],
-                        },
-                        {
-                            $or: [
-                                {
-                                    "rental_duration.start_date": { $lte: new Date(end_date) },
-                                    "rental_duration.end_date": { $gte: new Date(start_date) },
-                                }
-                            ],
-                        },
-                    ],
-                    deleted_at: null,
-                },
+                $match: macthQuery,
             },
             {
                 $lookup: {
                     from: "users",
                     foreignField: "_id",
                     localField: "user_id",
-                    as: "user_detail"
+                    as: "user_detail",
                 },
+
             },
             {
                 $unwind: "$user_detail",
@@ -78,20 +94,77 @@ export default async function (req, res) {
                     from: "products",
                     foreignField: "_id",
                     localField: "product_ids",
-                    as: "product_detail"
-                }
+                    as: "product_detail",
+                },
             },
             {
                 $project: {
                     "user_detail.password": 0,
                 }
-            },
-
+            }
         ];
+        // const filters = [
+        //     {
+        //         $match: {
+        //             $and: [
+        //                 {
+        //                     $or: [
+        //                         { order_id: { $regex: q, $options: "i"} },
+        //                         { transaction_id: { $regex: q, $options: "i"} },
+        //                         // { "product_detail.name": { $regex: q, $options: "i"} },
+        //                     ],
+        //                 },
+        //                 {
+        //                     $or: [
+        //                         {
+        //                             "rental_duration.start_date": { $lte: new Date(end_date) },
+        //                             "rental_duration.end_date": { $gte: new Date(start_date) },
+        //                         }
+        //                     ],
+        //                 },
+        //             ],
+        //             deleted_at: null,
+        //         },
+        //     },
+        //     {
+        //         $lookup: {
+        //             from: "users",
+        //             foreignField: "_id",
+        //             localField: "user_id",
+        //             as: "user_detail"
+        //         },
+        //     },
+        //     {
+        //         $unwind: "$user_detail",
+        //     },
+        //     {
+        //         $lookup: {
+        //             from: "products",
+        //             foreignField: "_id",
+        //             localField: "product_ids",
+        //             as: "product_detail"
+        //         }
+        //     },
+        //     {
+        //         $project: {
+        //             "user_detail.password": 0,
+        //         }
+        //     },
 
-        const data = await transactionModel.aggregate(filters).sort( { _id: "desc" }).skip(skip).limit(per_page);
+        // ];
 
-        const countDocuments = await transactionModel.aggregate(filters).count("total");
+        const data = await transactionModel.aggregate(filters).sort( { _id: -1 }).skip(skip).limit(per_page);
+
+        const countDocuments = await transactionModel.aggregate([
+            {
+                $match: macthQuery,
+            },
+            {
+                $count: "total"
+            },
+        ]);
+        
+        // const countDocuments = await transactionModel.aggregate(filters).count("total");
 
         const pagination = {
             page,
@@ -99,6 +172,12 @@ export default async function (req, res) {
             total: countDocuments.length ? countDocuments[0].total : 0,
         };
 
+
+        // const pagination = {
+        //     page,
+        //     per_page,
+        //     total: countDocuments.length ? countDocuments[0].total : 0,
+        // };
 
         
         message(res, 200, "Daftar transaksi", data, pagination);
