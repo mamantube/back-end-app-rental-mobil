@@ -70,7 +70,7 @@ export default async function (req, res) {
         matchQuery.$and = [
             {
                 "rental_duration.start_date": {
-                    $lte = new Date(end_date)
+                    $lte: new Date(end_date)
                 }
             },
             {
@@ -129,7 +129,7 @@ export default async function (req, res) {
 
     const countDocuments = await transactionModel.aggregate([
       {
-        $match: macthQuery,
+        $match: matchQuery,
       },
       {
         $count: "total",
