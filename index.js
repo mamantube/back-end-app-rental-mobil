@@ -9,10 +9,7 @@ import productRoute from "./src/routes/product.js";
 import transactionRoute from "./src/routes/transaction.js";
 
 const app = express();
-app.use(cors({
-    origin:true,
-    credentials: true,
-}));
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}))
 await seedDB();
