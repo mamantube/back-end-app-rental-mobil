@@ -5,12 +5,17 @@ import { z } from "zod";
 
 const schemaValidation = z
   .object({
-    start_date: z.coerce.date(),
-    end_date: z.coerce.date(),
+    start_date: z.string().optional(),
+    end_date: z.string().optional(),
   })
   .refine((data) => {
-    return !data.end_date || data.start_date <= data.end_date;
-  }, "start_date tidak boleh lebih besar dari pada end_date");
+    if (!data.start_date || !data.end_date) return true;
+
+    return new Date(data.start_date) <= new Date(data.end_date)
+  },
+  {
+    message: "start_date tidak boleh lebih besar dari pada end_date",
+  })
 
 /**
  *
@@ -26,8 +31,7 @@ const schemaValidation = z
 
 export default async function (req, res) {
   try {
-    const { start_date, end_date, status } = req.query;
-    const q = req.query.q || "";
+    const { start_date, end_date, status, q = "" } = req.query;
 
 
     const checkValidation = validation(schemaValidation, req.query);
